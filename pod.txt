@@ -1,0 +1,5 @@
+psql -h localhost -p 5432 -U iogurt Dipla
+
+psql -c 'DROP DATABASE "Dipla"'
+
+psql -c 'SELECT datname FROM pg_catalog.pg_database;'
