@@ -2,6 +2,7 @@
 #include <pqxx/transaction>
 #include <nlohmann/json.hpp>
 
+#include <iostream>
 #include <stdexcept>
 #include <string_view>
 #include <map>
@@ -23,19 +24,17 @@ public:
     std::string AddImg(const std::string& img) const;
     Postgres(pqxx::connection& c);
 
-    std::string QuestConsruct(const std::string& name,const std::string& text,const std::string& vars) const;
+    std::string QuestConsruct(pqxx::work& tx,const std::string& name,const std::string& text,const json& vars, const json& anser) const;
 
-    std::tuple<std::string,std::string,int,std::string> GetStudent(const std::string& mail) const;
-    std::tuple<std::string,std::string> GetTeacher(const std::string& mail) const;
     std::string GetChecking(const std::string& test_name) const;
     std::string GetQuestList() const;
     std::string GetTest(const std::string& test_name) const;
+    std::string GetQuest(const std::string& name) const;
+    std::string GetTests() const;
 
-    void InsertTeacher(const std::string& mail,const std::string& fio,const std::string& pass) const;
     void InsertGroup(const std::string& mail,const std::string& name) const;
     void InsertQuest(const json& quest) const;
     void InsertTest (const json& test) const;
-    void InsertStudent(const std::string& mail,const std::string& fio,const std::string& pass ,const std::string& group) const;
     std::string SetResult (const std::string& test_name, const std::string& mail,const json& ansers) const;
     
     void ChangeGroup(const std::string& name,const std::string& mail) const;

@@ -8,7 +8,6 @@ std::string Postgres::AddImg(const std::string& img) const
 void Postgres::PrepareInserts(pqxx::connection& con) const
 {
     //Teachers:
-    con.prepare("InsTeacher","INSERT INTO _Teacher (_EMAIL,_FIO,_PASS) VALUES ($1, $2, $3)");
     con.prepare("InsGroup","INSERT INTO _GROUP (_NAME, _EMAIL_TEACHER) VALUES ($1, $2)");
 
     //Tests/Quests:
@@ -19,15 +18,11 @@ void Postgres::PrepareInserts(pqxx::connection& con) const
     con.prepare("InsImgLink","INSERT INTO _IMG_QUEST (_QUEST,_IMG) VALUES ($1,$2)");
 
     //Students:
-    con.prepare("InsStud","INSERT INTO _STUDENT (_EMAIL,_FIO,_PASS,_GROUP) VALUES ($1, $2, $3, $4)");
     con.prepare("InsSavedTest","INSERT INTO _SAVEDTEST (_NAME_TEST,_EMAIL_STUDENT) VALUES ($1,$2) RETURNING _ID");
 }
 
 void Postgres::PrepareSelects(pqxx::connection& con) const
 {
-    //Teachers:
-    con.prepare("SelTeacher","SELECT _FIO, _PASS FROM _Teacher where _EMAIL = $1");
-
     //Tests:
     con.prepare("SelChecking","SELECT _EMAIL_STUDENT,_UNCHECKED_ANSERS,_ID FROM _SAVEDTEST WHERE _NAME_TEST=$1 AND _EMAIL_STUDENT=$2 AND _UNCHECKED_ANSERS IS NOT NULL");
     con.prepare("SelTestQuests",R"~(SELECT _QUEST._NAME, _TEXT, _VARIANTS, _ANSER FROM _QUEST 
@@ -37,6 +32,7 @@ void Postgres::PrepareSelects(pqxx::connection& con) const
     con.prepare("SelSavedTest","SELECT _ANSERS, _UNCHECKED_ANSERS FROM _SAVEDTEST WHERE _ID=$1");
     con.prepare("SelSavedAnsrs","SELECT _ANSERS,_UNCHECKED_ANSERS FROM _SAVEDTEST WHERE _ID=$1");
     con.prepare("SelEmptySavedTest","SELECT _ID FROM _SAVEDTEST WHERE _NAME_TEST=$1 AND _EMAIL_STUDENT=$2 AND _ANSERS IS NULL");
+    con.prepare("SelTests", "SELECT _NAME FROM _TEST");
 
     //Quests:
     con.prepare("SelQuestList","SELECT _NAME FROM _QUEST");
@@ -47,12 +43,11 @@ void Postgres::PrepareSelects(pqxx::connection& con) const
                                 JOIN _SETUP ON _QUEST._NAME=_SETUP._QUEST
                                 JOIN _TEST ON _SETUP._TEST=_TEST._NAME WHERE _TEST._NAME=$1 ORDER BY _SETUP._NUMBER)~");
     con.prepare("SelAnsr","SELECT _ANSER FROM _QUEST WHERE _NAME=$1");
+    con.prepare("SelQuest","SELECT _TEXT,_VARIANTS, _ANSER FROM _QUEST WHERE _NAME=$1");
 
     //Students:
-    con.prepare("SelStud","SELECT _FIO, _PASS, _NUMBER, _GROUP FROM _STUDENT WHERE _EMAIL = $1");
     con.prepare("SelStudList","SELECT _FIO,_EMAIL FROM _STUDENT WHERE _GROUP=$1 ORDER BY _NUMBER");
     con.prepare("SelStudTests","SELECT _ID,_NAME_TEST FROM _SAVEDTEST WHERE _EMAIL_STUDENT=$1");
-    con.prepare("SelQuest","SELECT _TEXT,_VARIANTS, _ANSER FROM _QUEST WHERE _NAME=$1");
 
 }
     
@@ -75,13 +70,33 @@ Postgres::Postgres (pqxx::connection& c):con(c){
     PrepareDelets(con);
 }
 
-std::string Postgres::QuestConsruct(const std::string& name,const std::string& text,const std::string& vars) const
+std::string Postgres::QuestConsruct(pqxx::work& tx,const std::string& name,const std::string& text,const json& vars, const json& anser={}) const
 {
     json out;
     out["name"]=name;
     out["text"]=text;
-    out["options"]=vars;
-    pqxx::work tx(con);
+    if (!anser.empty())
+    {
+        json options;
+        int k=0;
+        for (int i=0;i<vars.size();++i)
+        {
+            json opt;
+            opt["heading"]=vars[i];
+            if ((k<anser.size()) && (anser[k]==i))
+            {
+                opt["isTrue"]=true;
+                ++k;
+            }
+            else
+                opt["isTrue"]=false;
+            options+=opt;
+        }
+        out["options"]=options;
+    }
+    else
+        out["options"]=vars.at("heading").get<std::string>();
+    //pqxx::work tx(con);
     tx.exec_prepared("SelQuestImgs",name).for_each(
     [&out](std::string_view src,std::string_view txt) {
         json pics;
@@ -93,16 +108,16 @@ std::string Postgres::QuestConsruct(const std::string& name,const std::string& t
 }
 
 //Selects:
-std::tuple<std::string,std::string,int,std::string> Postgres::GetStudent(const std::string& mail) const
+std::string Postgres::GetTests() const
 {
+    json out;
     pqxx::work tx(con);
-    return tx.exec_prepared("SelStud",mail).at(0).as<std::string,std::string,int,std::string>();
-}
-
-std::tuple<std::string,std::string> Postgres::GetTeacher(const std::string& mail) const
-{
-    pqxx::work tx(con);
-    return tx.exec_prepared("SelTeacher",mail).at(0).as<std::string,std::string>();
+    tx.exec_prepared("SelTests").
+    for_each([&out](std::string name)
+    {
+        out+=name;
+    });
+    return to_string(out);
 }
 
 std::string Postgres::GetChecking(const std::string& test_name) const
@@ -120,7 +135,7 @@ std::string Postgres::GetChecking(const std::string& test_name) const
         {
             json quest;
             auto tup=tx.exec_prepared("GetNumedQuest",test_name,a.at("number").get<std::string>()).at(0).as<std::string,std::string,std::string>();
-            quest["quest"]=QuestConsruct(std::get<0>(tup),std::get<1>(tup),std::get<2>(tup));
+            quest["quest"]=QuestConsruct(tx,std::get<0>(tup),std::get<1>(tup),json::parse(std::get<2>(tup)));
             quest["anser"]=to_string(a.at("anser"));
             anrs.push_back(std::move(quest));
         }
@@ -146,21 +161,23 @@ std::string Postgres::GetTest(const std::string& test_name) const
     pqxx::work tx(con);
     json out;
     tx.exec_prepared("SelQuests",test_name).
-    for_each([this,&test_name,&out](std::string name,std::string text,std::string vars)
+    for_each([this,&test_name,&out,&tx](std::string name,std::string text,std::string vars)
     {
-        out+=json::parse(QuestConsruct(name,text,vars));
+        out+=json::parse(QuestConsruct(tx,name,text,json::parse(vars)));
     });
     return to_string(out);
 }
 
-//Inserts:
-void Postgres::InsertTeacher(const std::string& mail,const std::string& fio,const std::string& pass) const
+std::string Postgres::GetQuest(const std::string& name) const
 {
     pqxx::work tx(con);
-    tx.exec_prepared("InsTeacher",mail,fio,pass);
-    tx.commit();
+    auto tup=tx.exec_prepared("SelQuest",name).at(0).as<std::string,std::string,std::string>();
+    // tx.commit();
+    // tx.abort();
+    return QuestConsruct(tx,name,std::get<0>(tup),json::parse(std::get<1>(tup)),json::parse(std::get<2>(tup)));
 }
 
+//Inserts:
 void Postgres::InsertGroup(const std::string& name,const std::string& mail) const
 {
     pqxx::work tx(con);
@@ -174,12 +191,18 @@ void Postgres::InsertQuest(const json& quest) const
     json variants;
     json ansers;
     int i=0;
-    for (const auto& el:quest.at("options"))
+    if (quest.at("options").is_array())
+        for (const auto& el:quest.at("options"))
+        {
+            variants+=el.at("heading").get<std::string>();
+            if (el.at("isTrue").get<bool>())
+                ansers+=i;
+            ++i;
+        }
+    else
     {
-        variants+=el.at("heading").get<std::string>();
-        if ("true"==el.at("isTrue").get<std::string>())
-            ansers+=i;
-        ++i;
+        variants["heading"]=quest.at("options").get<std::string>();
+        ansers="";
     }
     tx.exec_prepared("InsQuest",quest.at("name").get<std::string>(),quest.at("text").get<std::string>(),to_string(variants),to_string(ansers)); 
     for (const auto& el:quest.at("pictures"))
@@ -198,14 +221,6 @@ void Postgres::InsertTest (const json& test) const
     int i=0;
     for (const auto& quest:test.at("value"))
         tx.exec_prepared("InsSetup",std::string(quest),test.at("name").get<std::string>(),i++);
-    tx.commit();
-    //
-}
-
-void Postgres::InsertStudent(const std::string& mail,const std::string& fio,const std::string& pass ,const std::string& group) const
-{
-    pqxx::work tx(con);
-    tx.exec_prepared("InsStud",mail,fio,pass,group);
     tx.commit();
     //
 }
