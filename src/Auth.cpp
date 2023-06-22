@@ -4,7 +4,7 @@ Auth::Auth(pqxx::connection& con,const std::string key):c(con),pub_key(key)
     c.prepare("InsTeacher","INSERT INTO _Teacher (_EMAIL,_FIO,_PASS) VALUES ($1, $2, $3)");
     c.prepare("InsStud","INSERT INTO _STUDENT (_EMAIL,_FIO,_PASS,_GROUP) VALUES ($1, $2, $3, $4)");
     c.prepare("SelTeacher","SELECT _FIO, _PASS FROM _Teacher where _EMAIL = $1");
-    c.prepare("SelStud","SELECT _PASS, _NUMBER, _GROUP FROM _STUDENT WHERE _EMAIL = $1");
+    c.prepare("SelStud","SELECT _FIO, _PASS, _NUMBER, _GROUP FROM _STUDENT WHERE _EMAIL = $1");
 }
 
 std::string Auth::VerifyTeacher (const std::string& token)

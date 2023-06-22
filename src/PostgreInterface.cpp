@@ -297,7 +297,7 @@ void Postgres::InsertQuest(const json& quest) const
     for (const auto& el:quest.at("pictures"))
     {
         int id=tx.exec_prepared("InsImg",quest.at("name").get<std::string>(),el.at("caption").get<std::string>()).at(0)[0].as<int>();
-        tx.exec_prepared("UpdateImg",AddImg(std::to_string(id)+"."+el.at("format").get<std::string>(),el.at("img").get<std::string>()),id);    
+        tx.exec_prepared("UpdateImg",AddImg(std::to_string(id),el.at("img").get<std::string>()),id);    
     }
     tx.commit();
 }

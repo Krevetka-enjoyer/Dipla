@@ -28,6 +28,7 @@ int main() {
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -42,6 +43,7 @@ CROW_ROUTE(app, "/teacher/<string>/quest/<string>").methods(crow::HTTPMethod::GE
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -58,6 +60,7 @@ CROW_ROUTE(app, "/teacher/<string>/quests").methods(crow::HTTPMethod::POST)//С�
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -71,6 +74,7 @@ CROW_ROUTE(app, "/teacher/<string>/quests").methods(crow::HTTPMethod::GET)//По
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -87,6 +91,7 @@ CROW_ROUTE(app, "/teacher/<string>/tests").methods(crow::HTTPMethod::POST) //С�
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -103,6 +108,7 @@ CROW_ROUTE(app, "/teacher/<string>/<string>").methods(crow::HTTPMethod::POST)//�
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -121,6 +127,7 @@ CROW_ROUTE(app, "/teacher").methods(crow::HTTPMethod::POST)//Вход учите
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -137,6 +144,7 @@ CROW_ROUTE(app, "/students").methods(crow::HTTPMethod::POST)//Регистрац
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -157,6 +165,7 @@ CROW_ROUTE(app, "/student").methods(crow::HTTPMethod::POST) //Вход студ�
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -170,6 +179,7 @@ CROW_ROUTE(app, "/teacher/<string>/<string>/choose").methods(crow::HTTPMethod::G
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -183,6 +193,7 @@ CROW_ROUTE(app, "/student/<string>/<string>").methods(crow::HTTPMethod::GET)//К
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -196,6 +207,7 @@ CROW_ROUTE(app, "/student/<string>/tests").methods(crow::HTTPMethod::GET)//По�
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -210,6 +222,7 @@ CROW_ROUTE(app, "/student/<string>/<string>/results").methods(crow::HTTPMethod::
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -226,6 +239,7 @@ CROW_ROUTE(app, "/teacher/<string>/student/<int>/choose/results").methods(crow::
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
   });
@@ -239,6 +253,7 @@ CROW_ROUTE(app,"/teacher/<string>/student/<string>/tests").methods(crow::HTTPMet
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
@@ -251,6 +266,7 @@ CROW_ROUTE(app,"/student/<string>/completed").methods(crow::HTTPMethod::GET)//П
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
@@ -264,6 +280,7 @@ CROW_ROUTE(app,"/student/<string>/<int>/results").methods(crow::HTTPMethod::GET)
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
@@ -280,6 +297,7 @@ CROW_ROUTE(app,"/teacher/<string>/students").methods(crow::HTTPMethod::POST)//С
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
@@ -294,6 +312,7 @@ CROW_ROUTE(app,"/teacher/<string>/student/<string>").methods(crow::HTTPMethod::D
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
@@ -308,6 +327,7 @@ CROW_ROUTE(app,"/teacher/<string>/group/<string>").methods(crow::HTTPMethod::DEL
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
@@ -323,6 +343,7 @@ CROW_ROUTE(app,"/teacher/<string>/groups").methods(crow::HTTPMethod::POST)//До
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
@@ -336,6 +357,7 @@ CROW_ROUTE(app,"/teacher/<string>/student/<string>/<int>").methods(crow::HTTPMet
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
@@ -349,6 +371,7 @@ CROW_ROUTE(app,"/teacher/<string>/group/<string>").methods(crow::HTTPMethod::GET
     }
     catch(const std::exception& e)
     {
+      std::cout<<e.what();
       return crow::response(400,e.what());
     }   
 });
