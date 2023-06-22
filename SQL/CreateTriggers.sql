@@ -26,3 +26,14 @@ create or replace function fn_del_stud() returns trigger as $del_student$
 drop trigger if exists del_student on _Group; 
 create trigger del_student before delete on _Group
       for each row execute procedure fn_del_stud();
+      
+create or replace function fn_del_tests() returns trigger as $del_tests$
+      begin
+        delete from _SavedTest where _SavedTest._EMAIL_STUDENT=old._EMAIL;
+        return old;
+      end;
+    $del_tests$ language plpgsql;
+    
+drop trigger if exists del_tests on _Student; 
+create trigger del_tests before delete on _Student
+      for each row execute procedure fn_del_tests();  
