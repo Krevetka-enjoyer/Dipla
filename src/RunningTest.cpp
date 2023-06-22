@@ -3,15 +3,17 @@
 RunningTest::RunningTest()
 {}
 
-void RunningTest::Add(const std::string& name,const std::string& start,const std::string& dur)
+void RunningTest::Add(int id,const std::string& name,const std::string& start,const std::string& dur)
 {
-    tests[name]["start"]=start;
-    tests[name]["duration"]=dur;
+    std::string i=std::to_string(id);
+    tests[i]["start"]=start;
+    tests[i]["duration"]=dur;
+    tests[i]["name"]=name;
 }
 
-void RunningTest::Del(const std::string& name)
+void RunningTest::Del(int id)
 {
-    tests.erase(name);
+    tests.erase(std::to_string(id));
 }
 
 std::string RunningTest::GetTests()
@@ -20,7 +22,7 @@ std::string RunningTest::GetTests()
     for (const auto& [key,val]:tests.items())
     {
         json value=val;
-        value["test_name"]=key;
+        value["id"]=key;
         out+=value;
     }
     return to_string(out);

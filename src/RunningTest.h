@@ -16,7 +16,7 @@ class RunningTest{
     json tests={};
 public:
     RunningTest();
-    void Add(const std::string& name,const std::string& start,const std::string& dur);
-    void Del(const std::string& name);
+    void Add(int id,const std::string& name,const std::string& start,const std::string& dur);
+    void Del(int id);
     std::string GetTests();
 };

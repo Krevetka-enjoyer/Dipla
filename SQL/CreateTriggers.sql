@@ -18,7 +18,7 @@ create trigger sort_student2 after delete on _Student
       
 create or replace function fn_del_stud() returns trigger as $del_student$
       begin
-        delete from _Student where _Student._GROUP=old._NAME;
+        delete from _Student where _Student._GROUP=old._ID;
         return old;
       end;
     $del_student$ language plpgsql;
