@@ -5,6 +5,7 @@ Auth::Auth(pqxx::connection& con,const std::string key):c(con),pub_key(key)
     c.prepare("InsStud","INSERT INTO _STUDENT (_EMAIL,_FIO,_PASS,_GROUP) VALUES ($1, $2, $3, $4)");
     c.prepare("SelTeacher","SELECT _FIO, _PASS FROM _Teacher where _EMAIL = $1");
     c.prepare("SelStud","SELECT _FIO, _PASS, _NUMBER, _GROUP FROM _STUDENT WHERE _EMAIL = $1");
+    c.prepare("SelGroupId","SELECT _ID FROM _GROUP WHERE _NAME=$1");
 }
 
 std::string Auth::VerifyTeacher (const std::string& token)
@@ -35,7 +36,7 @@ void Auth::AddTeacher (const std::string fio,const std::string pass, const std::
 void Auth::AddStudent (const std::string fio,const std::string pass, const std::string email, const std::string group)
 {
     pqxx::work tx(c);
-    tx.exec_prepared("InsStud",email,fio,pass,group);
+    tx.exec_prepared("InsStud",email,fio,pass,std::get<unsigned>(tx.exec_prepared("SelGroupId",group).at(0).as<unsigned>()));
     tx.commit();
 }
 
