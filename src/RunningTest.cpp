@@ -27,3 +27,16 @@ std::string RunningTest::GetTests()
     }
     return to_string(out);
 }
+
+std::string RunningTest::GetUnch()
+{
+    json out;
+    for (const auto& [key,val]:tests.items())
+    {
+        json value;
+        value["name"]=val.at("name").get<std::string>();
+        value["id"]=key;
+        out+=value;
+    }
+    return to_string(out);
+}

@@ -16,14 +16,13 @@ void Postgres::PrepareInserts(pqxx::connection& con) const
     con.prepare("InsImg","INSERT INTO _IMG (_QUEST,_TEXT) VALUES ($1,$2) RETURNING _ID");
 
     //Students:
-    con.prepare("InsSavedTest","INSERT INTO _SAVEDTEST (_TEST,_EMAIL_STUDENT,_answers,_UNCHECKED_answers,_DATE) VALUES ($1,$2,$3,$4,$5) RETURNING _ID");
+    con.prepare("InsSavedTest","INSERT INTO _SAVEDTEST (_TEST,_EMAIL_STUDENT,_answers,_UNCHECKED_answers,_DATE,_SCORE) VALUES ($1,$2,$3,$4,$5,$6) RETURNING _ID");
 }
 void Postgres::PrepareSelects(pqxx::connection& con) const
 {
     //Tests:
     con.prepare("SelChecking",R"~(SELECT _EMAIL_STUDENT,_UNCHECKED_answers,_ID FROM _SAVEDTEST
-                                  JOIN _STUDENT ON _STUDENT._EMAIL=_SAVEDTEST._EMAIL_STUDENT
-                                  WHERE _SAVEDTEST._TEST=$1 AND _STUDENT._GROUP=$2 AND _SAVEDTEST._UNCHECKED_answers IS NOT NULL)~");
+                                  WHERE _SAVEDTEST._TEST=$1 AND _SAVEDTEST._SCORE IS NULL)~");
     con.prepare("SelSavedAnsrs","SELECT _answers,_UNCHECKED_answers FROM _SAVEDTEST WHERE _ID=$1");
     con.prepare("SelEmptySavedTest","SELECT _ID FROM _SAVEDTEST WHERE _TEST=$1 AND _EMAIL_STUDENT=$2 AND _answers IS NULL");
     con.prepare("SelTests", "SELECT _NAME,_ID FROM _TEST");
@@ -140,11 +139,11 @@ std::string Postgres::GetTests() const
     });
     return to_string(out);
 }
-std::string Postgres::GetChecking(int test_id,int group) const
+std::string Postgres::GetChecking(int test_id) const
 {
     json out;
     pqxx::work tx(con);
-    tx.exec_prepared("SelChecking",test_id,group).
+    tx.exec_prepared("SelChecking",test_id).
     for_each([this, &out, &test_id,&tx](std::string_view email,std::string_view answers,int id)
     {
         json stud;
@@ -340,7 +339,6 @@ std::string Postgres::SetResult (int test_id, const std::string& mail,const json
         if (answer!="")
         {
             json an;
-
             if (answer==to_string(a))
             {
                 ++k;
@@ -359,7 +357,11 @@ std::string Postgres::SetResult (int test_id, const std::string& mail,const json
         }
         i++;
     }
-    auto id=std::get<unsigned>(tx.exec_prepared("InsSavedTest",test_id,mail,to_string(checked),to_string(unchecked),date).at(0).as<unsigned>());
+    unsigned id;
+    if (unchecked.empty())
+        id=std::get<unsigned>(tx.exec_prepared("InsSavedTest",test_id,mail,to_string(checked),to_string(unchecked),date,i==k?5:2).at(0).as<unsigned>());
+    else
+        id=std::get<unsigned>(tx.exec_prepared("InsSavedTest",test_id,mail,to_string(checked),to_string(unchecked),date,nullptr).at(0).as<unsigned>());
     json out;
     out["id"]=std::to_string(id);
     out["total"]=i;

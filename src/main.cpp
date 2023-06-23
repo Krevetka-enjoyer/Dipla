@@ -168,12 +168,12 @@ CROW_ROUTE(app, "/student").methods(crow::HTTPMethod::POST) //Вход студ�
     }   
   });
 
-CROW_ROUTE(app, "/teacher/<string>/<int><int>/choose").methods(crow::HTTPMethod::GET)//Вопросы для проверки преподователю
-  ([&db,&a](const std::string& auth,int group_id,int test_id) {
+CROW_ROUTE(app, "/teacher/<string>/<int>/choose").methods(crow::HTTPMethod::GET)//Вопросы для проверки преподователю
+  ([&db,&a](const std::string& auth,int test_id) {
     try
     {
       a.VerifyTeacher(auth);
-      return crow::response(200,db.GetChecking(test_id,group_id));
+      return crow::response(200,db.GetChecking(test_id));
     }
     catch(const std::exception& e)
     {
@@ -195,7 +195,6 @@ CROW_ROUTE(app, "/student/<string>/tests").methods(crow::HTTPMethod::GET)//По�
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app, "/student/<string>/<int>").methods(crow::HTTPMethod::GET)//Когда студент начал тест
   ([&db,&a](const std::string& auth,int test_id) {
     try
@@ -209,7 +208,6 @@ CROW_ROUTE(app, "/student/<string>/<int>").methods(crow::HTTPMethod::GET)//Ко�
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app, "/student/<string>/<int>/results").methods(crow::HTTPMethod::POST)//Когда студент завершил тест
   ([&db,&a](const crow::request& req,const std::string& auth,int test_id) {
     try
@@ -224,7 +222,6 @@ CROW_ROUTE(app, "/student/<string>/<int>/results").methods(crow::HTTPMethod::POS
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app, "/teacher/<string>/student/<int>/choose/results").methods(crow::HTTPMethod::POST)//Завершение проверки и оценка студента
   ([&db,&a](const crow::request& req,const std::string& auth,const int test_id) {
     try
@@ -241,7 +238,6 @@ CROW_ROUTE(app, "/teacher/<string>/student/<int>/choose/results").methods(crow::
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/teacher/<string>/student/<string>/tests").methods(crow::HTTPMethod::GET)//Получить список тестов студента
   ([&db,&a](const std::string& auth,const std::string& email) {
     try
@@ -255,7 +251,6 @@ CROW_ROUTE(app,"/teacher/<string>/student/<string>/tests").methods(crow::HTTPMet
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/student/<string>/completed").methods(crow::HTTPMethod::GET)//Получить пройденые тесты студента
   ([&db,&a](const std::string& auth) {
     try
@@ -268,7 +263,6 @@ CROW_ROUTE(app,"/student/<string>/completed").methods(crow::HTTPMethod::GET)//П
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/student/<string>/<int>/results").methods(crow::HTTPMethod::GET)//Посмотреть результаты теста
   ([&db,&a](const std::string& auth,int test_id) {
     try
@@ -282,7 +276,6 @@ CROW_ROUTE(app,"/student/<string>/<int>/results").methods(crow::HTTPMethod::GET)
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/teacher/<string>/students").methods(crow::HTTPMethod::POST)//Смена группы студента
   ([&db,&a](const crow::request& req,const std::string& auth) {
     try
@@ -299,7 +292,6 @@ CROW_ROUTE(app,"/teacher/<string>/students").methods(crow::HTTPMethod::POST)//С
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/teacher/<string>/student/<string>").methods(crow::HTTPMethod::DELETE)//Удаление студента
   ([&db,&a](const std::string& auth,const std::string& email) {
     try
@@ -314,7 +306,6 @@ CROW_ROUTE(app,"/teacher/<string>/student/<string>").methods(crow::HTTPMethod::D
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/teacher/<string>/group/<int>").methods(crow::HTTPMethod::DELETE)//Удаление группы
   ([&db,&a](const std::string& auth,int group) {
     try
@@ -329,7 +320,6 @@ CROW_ROUTE(app,"/teacher/<string>/group/<int>").methods(crow::HTTPMethod::DELETE
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/teacher/<string>/groups").methods(crow::HTTPMethod::POST)//Добавление группы
   ([&db,&a](const crow::request& req,const std::string& auth) {
     try
@@ -345,7 +335,6 @@ CROW_ROUTE(app,"/teacher/<string>/groups").methods(crow::HTTPMethod::POST)//До
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/teacher/<string>/student/<string>/<int>").methods(crow::HTTPMethod::GET)//Получить тест студента
   ([&db,&a](const std::string& auth,const std::string& email,int test_id) {
     try
@@ -359,7 +348,6 @@ CROW_ROUTE(app,"/teacher/<string>/student/<string>/<int>").methods(crow::HTTPMet
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/teacher/<string>/group/<int>").methods(crow::HTTPMethod::GET)//Получить список студентов группы
   ([&db,&a](const std::string& auth,int group) {
     try
@@ -373,12 +361,23 @@ CROW_ROUTE(app,"/teacher/<string>/group/<int>").methods(crow::HTTPMethod::GET)//
       return crow::response(400,e.what());
     }   
   });
-
 CROW_ROUTE(app,"/teacher/<string>/groups").methods(crow::HTTPMethod::GET)//Получить список групп
   ([&db,&a](const std::string& auth) {
     try
     {
       return crow::response(200,db.GetGroupList(a.VerifyTeacher(auth)));
+    }
+    catch(const std::exception& e)
+    {
+      std::cout<<e.what();
+      return crow::response(400,e.what());
+    }   
+  });
+CROW_ROUTE(app,"/teacher/<string>/tests/check").methods(crow::HTTPMethod::GET)//Список непроверенных тестов
+  ([&db,&a,&tests](const std::string& auth) {
+    try
+    {
+      return crow::response(200,tests.GetUnch());
     }
     catch(const std::exception& e)
     {

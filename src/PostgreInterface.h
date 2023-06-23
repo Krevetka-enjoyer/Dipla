@@ -30,7 +30,7 @@ class Postgres {
 public:
     Postgres(pqxx::connection& c);
 
-    std::string GetChecking(int test_id,int group) const;
+    std::string GetChecking(int test_id) const;
     std::string GetQuestList() const;
     std::string GetTest(int test_id) const;
     std::string GetQuest(int id) const;
