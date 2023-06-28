@@ -37,7 +37,7 @@ CROW_ROUTE(app, "/teacher/<string>/quest/<int>").methods(crow::HTTPMethod::GET)/
     try
     {
       a.VerifyTeacher(auth);
-      std::cerr<<"ya\n";
+      //std::cerr<<"ya\n";
       return crow::response(200,db.GetQuest(id));
     }
     catch(const std::exception& e)
@@ -52,7 +52,7 @@ CROW_ROUTE(app, "/teacher/<string>/quests").methods(crow::HTTPMethod::POST)//С�
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       a.VerifyTeacher(auth);
       db.InsertQuest(x);
       return crow::response(200,"yeah! Nice Cock!");
@@ -83,7 +83,7 @@ CROW_ROUTE(app, "/teacher/<string>/tests").methods(crow::HTTPMethod::POST) //С�
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       a.VerifyTeacher(auth);
       db.InsertTest(x);
       return crow::response(200,"yeah! Nice Cock!");
@@ -100,7 +100,7 @@ CROW_ROUTE(app, "/teacher/<string>/<int>").methods(crow::HTTPMethod::POST)//За
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       a.VerifyTeacher(auth);
       tests.Add(test_id,x.at("name").get<std::string>(),x.at("start").get<std::string>(),x.at("duration").get<std::string>());
       return crow::response(200,"yeah! Nice Test!");
@@ -117,7 +117,7 @@ CROW_ROUTE(app, "/teacher").methods(crow::HTTPMethod::POST)//Вход учите
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       return crow::response(200,a.AuthTeacher(x.at("password").get<std::string>(),x.at("email").get<std::string>()));
     }
     catch(const std::runtime_error& e)
@@ -136,7 +136,7 @@ CROW_ROUTE(app, "/students").methods(crow::HTTPMethod::POST)//Регистрац
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       a.AddStudent(x.at("surname").get<std::string>()+"_"+x.at("name").get<std::string>()+"_"+x.at("secondname").get<std::string>(),
                       x.at("password").get<std::string>(), x.at("email").get<std::string>(), x.at("group").get<std::string>());
       return crow::response(200,"yeah! Nice Cock!");
@@ -154,7 +154,7 @@ CROW_ROUTE(app, "/student").methods(crow::HTTPMethod::POST) //Вход студ�
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       return crow::response(200,a.AuthStudent(x.at("password").get<std::string>(),x.at("email").get<std::string>()));
     }
     catch(const std::runtime_error& e)
@@ -213,7 +213,7 @@ CROW_ROUTE(app, "/student/<string>/<int>/results").methods(crow::HTTPMethod::POS
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       return crow::response(200,db.SetResult(test_id,a.VerifyStudent(auth),x.at("answers"),x.at("date_time")));
     }
     catch(const std::exception& e)
@@ -227,7 +227,7 @@ CROW_ROUTE(app, "/teacher/<string>/student/<int>/choose/results").methods(crow::
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       a.VerifyTeacher(auth);
       db.SetChecking(test_id,x);
       return crow::response(200,"yeah! Nice Cock!");
@@ -281,7 +281,7 @@ CROW_ROUTE(app,"/teacher/<string>/students").methods(crow::HTTPMethod::POST)//С
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       a.VerifyTeacher(auth);
       db.ChangeGroup(x.at("group").get<int>(),x.at("email").get<std::string>());
       return crow::response(200,"yeah! Nice Cock!");
@@ -325,7 +325,7 @@ CROW_ROUTE(app,"/teacher/<string>/groups").methods(crow::HTTPMethod::POST)//До
     try
     {
       json x = json::parse(req.body);
-      std::cerr<<x<<'\n';
+      //std::cerr<<x<<'\n';
       db.InsertGroup(x.at("name").get<std::string>(),a.VerifyTeacher(auth));
       return crow::response(200,"yeah! Nice Cock!");
     }

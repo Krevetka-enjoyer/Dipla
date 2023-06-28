@@ -13,6 +13,7 @@ std::string Disk::GetPath(const std::string& path)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
     curl_easy_perform(curl);
     curl_easy_cleanup(curl);
+    std::cerr<<buf.GetStr()<<'\n';
     return json::parse(buf.GetStr()).at("href").get<std::string>();
 }
 
@@ -40,6 +41,6 @@ void Disk::PutOnDisk(const std::string& path, const std::string& file)
 
 std::string Disk::Send(const std::string& name, const std::string& img)
 {
-    PutOnDisk(GetPath("https://cloud-api.yandex.net/v1/disk/resources/upload?path=/Server/"+name), img);
-    return GetPath("https://cloud-api.yandex.net/v1/disk/resources/download?path=/Server/"+name);
+    PutOnDisk(GetPath("https://cloud-api.yandex.net/v1/disk/resources/upload?path=/Server/"+name+".jpg"), img);
+    return GetPath("https://cloud-api.yandex.net/v1/disk/resources/download?path=/Server/"+name+".jpg");
 }

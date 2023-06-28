@@ -23,7 +23,7 @@ void Postgres::PrepareSelects(pqxx::connection& con) const
     //Tests:
     con.prepare("SelChecking",R"~(SELECT _EMAIL_STUDENT,_UNCHECKED_answers,_ID FROM _SAVEDTEST
                                   WHERE _SAVEDTEST._TEST=$1 AND _SAVEDTEST._SCORE IS NULL)~");
-    con.prepare("SelSavedAnsrs","SELECT _answers,_UNCHECKED_answers FROM _SAVEDTEST WHERE _ID=$1");
+    con.prepare("SelSavedAnsrs","SELECT _answers,_UNCHECKED_answers,_ID FROM _SAVEDTEST WHERE _TEST=$1 AND _EMAIL_STUDENT=$2 AND _SCORE IS NULL");///////
     con.prepare("SelEmptySavedTest","SELECT _ID FROM _SAVEDTEST WHERE _TEST=$1 AND _EMAIL_STUDENT=$2 AND _answers IS NULL");
     con.prepare("SelTests", "SELECT _NAME,_ID FROM _TEST");
     con.prepare("SelStudTests", "SELECT _ID,_TEST,_DATE FROM _SAVEDTEST WHERE _EMAIL_STUDENT=$1");
@@ -150,12 +150,13 @@ std::string Postgres::GetChecking(int test_id) const
         stud["id"]=id;
         stud["email"]=email;
         json anrs;
-        for (const auto& [key,val]:json::parse(answers).items())
+        json unch=json::parse(answers);
+        for (const auto& val:unch)
         {
             json quest;
-            auto [id,text]=tx.exec_prepared("SelNumedQuest",test_id,key).at(0).as<int,std::string>();
+            auto [id,text]=tx.exec_prepared("SelNumedQuest",test_id,val.begin().key()).at(0).as<int,std::string>();
             quest["quest"]=QuestConsruct(tx,id,text);
-            quest["answer"]=val;
+            quest["answer"]=val.begin().value().get<std::string>();
             anrs.push_back(std::move(quest));
         }
         stud["answers"]=std::move(anrs);
@@ -221,22 +222,23 @@ std::string Postgres::GetTestReview(int test_id) const
         json quest;
         quest["quest"]["pictures"]=GetImgs(tx,q_id);
         quest["quest"]["text"]=text;
-        json vs=json::parse(vars);
-        if (vars.empty())
+        //std::cerr<<vars<<'\n'<<ansrs<<"\n\n";
+        if (vars=="null")
         {
-            quest["answers"]["text"]=ansrs.at("answer").get<std::string>();
-            quest["answers"]["isTrue"]=ansrs.at("right").get<bool>();
+            quest["answers"]["text"]=ansrs[i].at("answer").get<std::string>();
+            quest["answers"]["isTrue"]=ansrs[i].at("right").get<bool>();
         }
         else
         {
-            json anser=ansrs[i];
+            json vs=json::parse(vars);
+            json anser=ansrs[i].at("answer");
             json tru=json::parse(std::get<std::string>(tx.exec_prepared("SelAnsr",q_id).at(0).as<std::string>()));
             int a=0;
             int t=0;
-            for (int j=0;j<vars.size();++j)
+            for (int j=0;j<vs.size();++j)
             {
                 json var;
-                var["heading"]=vars[j];
+                var["heading"]=vs[j];
                 if (tru[t]==j)
                 {
                     var["isTrue"]=true;
@@ -312,7 +314,11 @@ void Postgres::InsertQuest(const json& quest) const
         pqxx::subtransaction s(tx);
         unsigned Imgid=std::get<unsigned>(s.exec_prepared("InsImg",id,el.at("caption").get<std::string>()).at(0).as<unsigned>());
         s.commit();
-        tx.exec_prepared("UpdateImg",AddImg(std::to_string(id),el.at("img").get<std::string>()),Imgid);    
+        std::ofstream f(std::to_string(Imgid)+".jpg");
+        f<<el.at("img").get<std::string>();
+        std::cerr<<el.at("img").get<std::string>()<<'\n'<<'\n';
+        f.close();
+        tx.exec_prepared("UpdateImg",AddImg(std::to_string(Imgid),el.at("img").get<std::string>()),Imgid);    
     }
     tx.commit();
 }
@@ -336,7 +342,7 @@ std::string Postgres::SetResult (int test_id, const std::string& mail,const json
     {
         std::string answer=std::get<std::string>(tx.exec_prepared("SelAnsr",ans.at("id").get<int>()).at(0).as<std::string>());
         json a=ans.at("answers");
-        if (answer!="")
+        if (answer!="null")
         {
             json an;
             if (answer==to_string(a))
@@ -393,18 +399,20 @@ void Postgres::ChangeGroup(int id,const std::string& mail) const
 void Postgres::SetChecking (int test_id,const json& check) const
 {
     pqxx::work tx(con);
-    auto [a,u]=tx.exec_prepared("SelSavedAnsrs",test_id,check.at("email").get<std::string>()).at(0).as<std::string,std::string>();
+    auto [a,u,id]=tx.exec_prepared("SelSavedAnsrs",test_id,check.at("email").get<std::string>()).at(0).as<std::string,std::string,unsigned>();
     json ansrs=json::parse(a);
     json unchecked=json::parse(u);
+    std::cerr<<ansrs<<'\n'<<unchecked<<'\n';
     int i=0;
-    for(const auto& [key,val]:unchecked.items())
+    for(const auto& val:unchecked)
     {
         json ans;
-        ans["answer"]=val;
+        ans["answer"]=val.begin().value().get<std::string>();
         ans["right"]=check.at("estimation")[i++];
-        ansrs.insert(ansrs.begin()+std::stoi(key),to_string(ans));
+        ansrs.insert(ansrs.begin()+std::stoi(val.begin().key()),ans);
+        std::cerr<<ansrs<<'\n';
     }
-    tx.exec_prepared("UpdateChecking",nullptr,to_string(ansrs),check.at("score").get<int>(),test_id);
+    tx.exec_prepared("UpdateChecking","null",to_string(ansrs),check.at("score").get<int>(),id);
     tx.commit();
     //
 }
