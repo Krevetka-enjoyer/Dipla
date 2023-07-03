@@ -16,6 +16,7 @@ class Disk
 	void PutOnDisk(const std::string& path, const std::string& file);
 
 public:
-	std::string Send(const std::string& name, const std::string& img);
+	void Send(unsigned name, const std::string& img);
+	std::string GetURL(unsigned name);
 };
 

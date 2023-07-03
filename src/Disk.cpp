@@ -39,8 +39,12 @@ void Disk::PutOnDisk(const std::string& path, const std::string& file)
     curl_easy_cleanup(curl);
 }
 
-std::string Disk::Send(const std::string& name, const std::string& img)
+void Disk::Send(unsigned name, const std::string& img)
 {
-    PutOnDisk(GetPath("https://cloud-api.yandex.net/v1/disk/resources/upload?path=/Server/"+name+".jpg"), img);
-    return GetPath("https://cloud-api.yandex.net/v1/disk/resources/download?path=/Server/"+name+".jpg");
+    PutOnDisk(GetPath("https://cloud-api.yandex.net/v1/disk/resources/upload?path=/Server/"+std::to_string(name)), img);
+}
+
+std::string Disk::GetURL(unsigned name)
+{
+    return GetPath("https://cloud-api.yandex.net/v1/disk/resources/download?path=/Server/"+std::to_string(name));
 }

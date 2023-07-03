@@ -46,7 +46,7 @@ std::string Auth::AuthTeacher (const std::string pass, const std::string email)
     auto [fio,password] = tx.exec_prepared("SelTeacher",email).at(0).as<std::string,std::string>();
     if (password==pass)
     {
-        map payload;
+        simple_map payload;
         payload["fio"]=fio;
         payload["pass"]=pass;
         payload["email"]=email;
@@ -62,7 +62,7 @@ std::string Auth::AuthStudent (const std::string pass, const std::string email)
     auto [fio,password,number,group] = tx.exec_prepared("SelStud",email).at(0).as<std::string,std::string,int,std::string>();
     if (password==pass)
     {
-        map payload;
+        simple_map payload;
         payload["fio"]=fio;
         payload["pass"]=pass;
         payload["number"]=number;

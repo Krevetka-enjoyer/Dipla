@@ -4,7 +4,7 @@
 #include <string>
 #include <sstream>
 
-typedef std::map<std::string,std::string> map;
+typedef std::map<std::string,std::string> simple_map;
 using namespace jwt::params;
 struct JwtWork
 {
@@ -17,7 +17,7 @@ static std::string VerifyToken (const std::string& token,const std::string& pub_
     return s.str();
 }
 
-static std::string CreateToken (map& pay,const std::string& pub_key)
+static std::string CreateToken (simple_map& pay,const std::string& pub_key)
 {
     jwt::jwt_object obj{algorithm("HS256"), payload(pay), secret(pub_key)};
     obj.add_claim("exp", std::chrono::system_clock::now() + std::chrono::hours{12});

@@ -27,7 +27,8 @@ class Postgres {
 
     json GetImgs(pqxx::work& tx,int id) const;
     json QuestConsruct(pqxx::work& tx,int id,const std::string& text,const json& vars, const json& answer) const;
-    std::string AddImg(const std::string& name,const std::string& img) const;
+    json TestConstruct(pqxx::work& tx,int id) const;
+    void AddImg(unsigned name,const std::string& img) const;
 public:
     Postgres(pqxx::connection& c);
 
@@ -40,11 +41,12 @@ public:
     std::string GetTestReview(int test_id) const;
     std::string GetStudList(int group) const;
     std::string GetGroupList(const std::string& email) const;
+    std::string GetUncheckedTests() const;
 
     void InsertGroup(const std::string& mail,const std::string& name) const;
     void InsertQuest(const json& quest) const;
     void InsertTest (const json& test) const;
-    std::string SetResult (int test_id, const std::string& mail,const json& answers,const std::string date) const;
+    void SetResult (int test_id, const std::string& mail,const json& answers,const std::string date) const;
     
     void ChangeGroup(int id,const std::string& mail) const;
     void SetChecking (int test_id,const json& check) const;

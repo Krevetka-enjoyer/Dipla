@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS _Quest (
 
 CREATE TABLE IF NOT EXISTS _Img (
 	_ID bigserial PRIMARY KEY,
-	_SRC text,
 	_TEXT text,
 	_QUEST bigserial,
 	CONSTRAINT prin FOREIGN KEY (_QUEST) REFERENCES _Quest(_ID)

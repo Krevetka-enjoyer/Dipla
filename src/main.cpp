@@ -102,7 +102,7 @@ CROW_ROUTE(app, "/teacher/<string>/<int>").methods(crow::HTTPMethod::POST)//За
       json x = json::parse(req.body);
       //std::cerr<<x<<'\n';
       a.VerifyTeacher(auth);
-      tests.Add(test_id,x.at("name").get<std::string>(),x.at("start").get<std::string>(),x.at("duration").get<std::string>());
+      tests.Add(test_id,x.at("name").get<std::string>(),x.at("start").get<std::string>(),x.at("finish").get<std::string>(),x.at("duration").get<std::string>());
       return crow::response(200,"yeah! Nice Test!");
     }
     catch(const std::exception& e)
@@ -214,7 +214,8 @@ CROW_ROUTE(app, "/student/<string>/<int>/results").methods(crow::HTTPMethod::POS
     {
       json x = json::parse(req.body);
       //std::cerr<<x<<'\n';
-      return crow::response(200,db.SetResult(test_id,a.VerifyStudent(auth),x.at("answers"),x.at("date_time")));
+      db.SetResult(test_id,a.VerifyStudent(auth),x.at("answers"),x.at("date_time"));
+      return crow::response(200,"yeah! Nice Cock!");
     }
     catch(const std::exception& e)
     {
@@ -374,10 +375,10 @@ CROW_ROUTE(app,"/teacher/<string>/groups").methods(crow::HTTPMethod::GET)//По�
     }   
   });
 CROW_ROUTE(app,"/teacher/<string>/tests/check").methods(crow::HTTPMethod::GET)//Список непроверенных тестов
-  ([&db,&a,&tests](const std::string& auth) {
+  ([&db,&a](const std::string& auth) {
     try
     {
-      return crow::response(200,tests.GetUnch());
+      return crow::response(200,db.GetUncheckedTests());
     }
     catch(const std::exception& e)
     {

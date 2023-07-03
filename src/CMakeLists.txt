@@ -7,7 +7,7 @@ add_library(Disk Disk.cpp Disk.h)
 target_link_libraries(Disk Help CURL::libcurl nlohmann_json::nlohmann_json)
 
 add_library(Tests RunningTest.cpp RunningTest.h)
-target_link_libraries(Tests nlohmann_json::nlohmann_json)
+target_link_libraries(Tests nlohmann_json::nlohmann_json ${Boost_LIBRARIES})
 
 add_library(JwtWork JwtWork.cpp)
 target_link_libraries(JwtWork cpp-jwt::cpp-jwt)
