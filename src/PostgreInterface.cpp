@@ -170,6 +170,7 @@ std::string Postgres::GetChecking(int test_id) const
     json out;
     pqxx::work tx(con);
     out["test"]=TestConstruct(tx,test_id);
+    std::cerr<<out<<"\n\n";
     tx.exec_prepared("SelChecking",test_id).
     for_each([this, &out, &test_id,&tx](std::string_view email,std::string_view unchecked_answers,std::string_view answers,int id)
     {
@@ -179,14 +180,16 @@ std::string Postgres::GetChecking(int test_id) const
         json complete;
         json unch=json::parse(unchecked_answers);
         json ansrs=json::parse(answers);
+        std::cerr<<unch<<"\n\n";
+        std::cerr<<ansrs<<"\n\n";
         int u=0;
         int a=0;
         for (int i=0;i<out.at("test").size();++i)
         {
-            if (std::stoi(unch[u].begin().key())==i)
+            if (!unch.empty()&&(u<unch.size())&&(std::stoi(unch[u].begin().key())==i))
                 complete.push_back(unch[u++].begin().value().get<std::string>());
             else
-                complete.push_back(std::move(ansrs[a++].at("answer")));
+                complete.push_back(ansrs[a++].at("answer"));
         }
         stud["answers"]=std::move(complete);
         out["students"].push_back(std::move(stud));
@@ -245,14 +248,14 @@ std::string Postgres::GetTestReview(int test_id) const
         json quest;
         quest["quest"]["pictures"]=GetImgs(tx,q_id);
         quest["quest"]["text"]=text;
-        if (vars=="")
+        json vs=json::parse(vars);
+        if (vs.empty())
         {
             quest["answers"]["text"]=ansrs[i].at("answer").get<std::string>();
             quest["answers"]["isTrue"]=ansrs[i].at("right").get<bool>();
         }
         else
         {
-            json vs=json::parse(vars);
             json anser=ansrs[i].at("answer");
             json tru=json::parse(std::get<std::string>(tx.exec_prepared("SelAnsr",q_id).at(0).as<std::string>()));
             int a=0;
@@ -320,12 +323,10 @@ void Postgres::InsertQuest(const json& quest) const
                 answers+=i;
             ++i;
         }
-    else
-    {
-        variants={};
-        answers="";
-    }
-    unsigned id=std::get<unsigned>(tx.exec_prepared("InsQuest",quest.at("name").get<std::string>(),quest.at("text").get<std::string>(),to_string(variants),to_string(answers)).at(0).as<unsigned>());
+    unsigned id=std::get<unsigned>(tx.exec_prepared("InsQuest",quest.at("name").get<std::string>(),
+                                                               quest.at("text").get<std::string>(),
+                                                               to_string(variants),
+                                                               to_string(answers)).at(0).as<unsigned>());
     for (const auto& el:quest.at("pictures"))
     {
         unsigned Imgid=std::get<unsigned>(tx.exec_prepared("InsImg",id,el.at("caption").get<std::string>()).at(0).as<unsigned>());
@@ -351,7 +352,7 @@ void Postgres::SetResult (int test_id, const std::string& mail,const json& answe
     {
         std::string true_answer=std::get<std::string>(tx.exec_prepared("SelAnsr",answers[i].at("id").get<int>()).at(0).as<std::string>());
         json answer=answers[i].at("answers");
-        if (true_answer!="")
+        if (true_answer!="null")
         {
             json an;
             if (true_answer==to_string(answer))

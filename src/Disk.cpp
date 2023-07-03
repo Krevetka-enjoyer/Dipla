@@ -13,7 +13,6 @@ std::string Disk::GetPath(const std::string& path)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
     curl_easy_perform(curl);
     curl_easy_cleanup(curl);
-    std::cerr<<buf.GetStr()<<'\n';
     return json::parse(buf.GetStr()).at("href").get<std::string>();
 }
 
