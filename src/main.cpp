@@ -100,7 +100,7 @@ CROW_ROUTE(app, "/teacher/<string>/<int>").methods(crow::HTTPMethod::POST)//За
     try
     {
       json x = json::parse(req.body);
-      //std::cerr<<x<<'\n';
+      std::cerr<<x<<'\n';
       a.VerifyTeacher(auth);
       tests.Add(test_id,x.at("name").get<std::string>(),x.at("start").get<std::string>(),x.at("finish").get<std::string>(),x.at("duration").get<std::string>());
       return crow::response(200,"yeah! Nice Test!");

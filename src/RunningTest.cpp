@@ -6,10 +6,15 @@ void RunningTest::Baran()
     {
         std::lock_guard guard(AddMute);
         for (auto& ob:tests)
-            if (ob.second.isStart && ob.second.finish>=second_clock::local_time())
+        {
+            if (ob.second.isStart && (ob.second.finish<=second_clock::local_time()))
+            {
+                std::cerr<<ob.second.name<<"- finished!"<<'\n';
                 tests.erase(ob.first);
+            }
             else if (ob.second.start<=second_clock::local_time())
                 ob.second.isStart=true;
+        }
     }
     isRunning=false;
 } 
@@ -35,12 +40,18 @@ void RunningTest::Add(int id,const std::string& name,const std::string& start,co
     else
         tests[id]={start_t,finish_t,name,duration,false};
     if (!isRunning)
+    {
+        isRunning=true;
+        if (Runner.joinable())
+            Runner.join();
         Runner=std::thread(&RunningTest::Baran, this);
+    }
 }
 
 std::string RunningTest::GetTests()
 {
     json out;
+    std::lock_guard guard(AddMute);
     for (const auto& ob:tests)
     {
         json value;
