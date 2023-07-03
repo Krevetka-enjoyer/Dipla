@@ -213,7 +213,7 @@ CROW_ROUTE(app, "/student/<string>/<int>/results").methods(crow::HTTPMethod::POS
     try
     {
       json x = json::parse(req.body);
-      //std::cerr<<x<<'\n';
+      std::cerr<<x<<'\n';
       db.SetResult(test_id,a.VerifyStudent(auth),x.at("answers"),x.at("date_time"));
       return crow::response(200,"yeah! Nice Cock!");
     }

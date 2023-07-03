@@ -350,9 +350,11 @@ void Postgres::SetResult (int test_id, const std::string& mail,const json& answe
     json checked;
     for (int i=0;i<answers.size();++i)
     {
-        std::string true_answer=std::get<std::string>(tx.exec_prepared("SelAnsr",answers[i].at("id").get<int>()).at(0).as<std::string>());
+        auto res=tx.exec_prepared("SelQuest",answers[i].at("id").get<int>()).at(0).as<std::string,std::string,std::string>();
+        std::string true_answer=std::get<2>(res);
+        std::string vs=std::get<1>(res);
         json answer=answers[i].at("answers");
-        if (true_answer!="null")
+        if (vs!="null")
         {
             json an;
             if (true_answer==to_string(answer))
