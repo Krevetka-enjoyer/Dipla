@@ -228,7 +228,7 @@ CROW_ROUTE(app, "/teacher/<string>/student/<int>/choose/results").methods(crow::
     try
     {
       json x = json::parse(req.body);
-      //std::cerr<<x<<'\n';
+      std::cerr<<x<<'\n';
       a.VerifyTeacher(auth);
       db.SetChecking(test_id,x);
       return crow::response(200,"yeah! Nice Cock!");

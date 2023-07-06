@@ -24,7 +24,7 @@ void Postgres::PrepareSelects(pqxx::connection& con) const
     con.prepare("SelChecking",R"~(SELECT _EMAIL_STUDENT,_UNCHECKED_answers,_answers,_ID FROM _SAVEDTEST
                                   WHERE _SAVEDTEST._TEST=$1 AND _SAVEDTEST._SCORE IS NULL)~");
     con.prepare("SelUncheckedTests", R"~(SELECT _TEST._NAME,_TEST FROM _SAVEDTEST
-                                         JOIN _TEST ON _TEST._ID=_SAVEDTEST._TEST WHERE _SCORE IS NULL)~");
+                                         JOIN _TEST ON _TEST._ID=_SAVEDTEST._TEST WHERE _SCORE IS NULL GROUP BY _TEST,_TEST._NAME)~");
     con.prepare("SelSavedAnsrs","SELECT _answers,_UNCHECKED_answers FROM _SAVEDTEST WHERE _ID=$1");
     con.prepare("SelTests", "SELECT _NAME,_ID FROM _TEST");
     con.prepare("SelStudTests", R"~(SELECT _SAVEDTEST._ID,_TEST._NAME,_DATE FROM _SAVEDTEST 
@@ -170,7 +170,6 @@ std::string Postgres::GetChecking(int test_id) const
     json out;
     pqxx::work tx(con);
     out["test"]=TestConstruct(tx,test_id);
-    std::cerr<<out<<"\n\n";
     tx.exec_prepared("SelChecking",test_id).
     for_each([this, &out, &test_id,&tx](std::string_view email,std::string_view unchecked_answers,std::string_view answers,int id)
     {
@@ -180,8 +179,6 @@ std::string Postgres::GetChecking(int test_id) const
         json complete;
         json unch=json::parse(unchecked_answers);
         json ansrs=json::parse(answers);
-        std::cerr<<unch<<"\n\n";
-        std::cerr<<ansrs<<"\n\n";
         int u=0;
         int a=0;
         for (int i=0;i<out.at("test").size();++i)
@@ -401,7 +398,7 @@ void Postgres::SetChecking (int test_id,const json& check) const
     {
         json answer;
         answer["answer"]=unchecked[i].begin().value().get<std::string>();
-        answer["right"]=check.at("estimation")[i++];
+        answer["right"]=check.at("estimation")[i];
         answers.insert(answers.begin()+std::stoi(unchecked[i].begin().key()),answer);
     }
     tx.exec_prepared("UpdateChecking",to_string(answers),check.at("score").get<int>(),test_id);
