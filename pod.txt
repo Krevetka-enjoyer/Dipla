@@ -1,7 +1,0 @@
-psql -h localhost -p 5432 -U iogurt dipla
-
-psql -c 'SELECT datname FROM pg_catalog.pg_database;'
-
-grant all privileges on database dipla to iogurt;
-
-eval `ssh-agent -s`; ssh-add ~/.ssh/Dipla; git push
