@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+    
+    batya:
+      build:
+        context: .
+        dockerfile: ./Dockerfile
+      privileged: true
+      ports:
+        - 8080:8080
+      depends_on:
+        postgres:
+          condition: service_healthy
+      working_dir: /app/build/src
+      command: ["./Dipla"]
+            
+    postgres:
+        image: postgres:12
+        restart: on-failure
+        environment:
+          POSTGRES_USER: iogurt
+          POSTGRES_PASSWORD: Duraley195ASD
+          POSTGRES_DB: dipla
+        healthcheck:
+          test: ["CMD-SHELL", "pg_isready -U iogurt -d dipla"]
+          interval: 10s
+          timeout: 5s
+          retries: 5
+        volumes: 
+          - ./SQL/CreateTables.sql:/docker-entrypoint-initdb.d/CreateTables.sql
+          - ./SQL/CreateTriggers.sql:/docker-entrypoint-initdb.d/CreateTriggers.sql
+          - ./SQL/FillTables.sql:/docker-entrypoint-initdb.d/FillTables.sql
+        ports:
+          - 5432:5432
+         
