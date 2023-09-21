@@ -10,11 +10,11 @@ find_package(Crow)
 find_package( CURL REQUIRED )
 find_package(Boost 1.71.0 REQUIRED COMPONENTS date_time) 
 
-include_directories(third_party/json-develop
+include_directories(third_party/json
 		     third_party/libpqxx
 		     third_party/cpp-jwt
                     third_party/)
-add_subdirectory(third_party/json-develop)
+add_subdirectory(third_party/json)
 add_subdirectory(third_party/cpp-jwt)
 add_subdirectory(third_party/libpqxx)
 add_subdirectory(src)

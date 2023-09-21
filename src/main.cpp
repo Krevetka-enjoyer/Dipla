@@ -12,7 +12,7 @@
 using json = nlohmann::json;
 
 int main() {
-  pqxx::connection c("host=localhost port=5432 user=iogurt password=Duraley195ASD dbname=dipla connect_timeout=10");
+  pqxx::connection c("host=postgres port=5432 user=iogurt password=Duraley195ASD dbname=dipla connect_timeout=10");
   Postgres db(c);
   RunningTest tests;
   Auth a(c,"Grib");
